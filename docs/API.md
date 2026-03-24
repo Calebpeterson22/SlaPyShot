@@ -1,8 +1,33 @@
-# API
+# API Reference
 
-::: pypackage_template.template_package.multiply
+Full auto-generated documentation for all SlaPyShot classes and methods.
 
+---
 
-::: pypackage_template.add_numbers.add
+## NHLClient
 
-::: pypackage_template.add_numbers
+::: slapyshot.client.NHLClient
+
+---
+
+## TeamsEndpoint
+
+::: slapyshot.endpoints.teams.TeamsEndpoint
+
+---
+
+## ScheduleEndpoint
+
+::: slapyshot.endpoints.schedule.ScheduleEndpoint
+
+---
+
+## GamesEndpoint
+
+::: slapyshot.endpoints.games.GamesEndpoint
+
+---
+
+## PlayersEndpoint
+
+::: slapyshot.endpoints.players.PlayersEndpoint

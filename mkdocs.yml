@@ -1,34 +1,58 @@
-site_name: Example MkDocs Material Documentation for pypackage_template
-site_url: https://byuirpytooling.github.io/pypackage_template
+site_name: SlaPyShot
+site_url: https://byuirpytooling.github.io/slapyshot
+site_description: A clean Python wrapper for the SportRadar NHL API — get teams, schedules, game data, and player stats as Polars DataFrames in seconds.
+site_author: Caleb Peterson
+
+repo_name: byuirpytooling/slapyshot
+repo_url: https://github.com/byuirpytooling/slapyshot
+
 theme:
   name: material
   icon:
-    logo: fontawesome/solid/wind
+    logo: fontawesome/solid/hockey-puck
   favicon: assets/favicon.ico
-  featuers:
+  features:
     - navigation.footer
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+    - navigation.top
+    - content.code.copy
+    - content.code.annotate
+    - search.highlight
+    - search.suggest
   font:
     text: Merriweather Sans
     code: Red Hat Mono
   palette:
-    # Dark Mode
     - scheme: slate
       toggle:
         icon: material/weather-sunny
-        name: Dark mode
-      primary: green
-      accent: deep purple
-
-    # Light Mode
+        name: Switch to light mode
+      primary: blue
+      accent: cyan
     - scheme: default
       toggle:
         icon: material/weather-night
-        name: Light mode
+        name: Switch to dark mode
       primary: blue
-      accent: deep orange
+      accent: cyan
+
+nav:
+  - Home: index.md
+  - Getting Started: getting-started.md
+  - Vignettes:
+    - Teams & Rosters: vignettes/teams.md
+    - Schedules: vignettes/schedules.md
+    - Game Data: vignettes/games.md
+    - Player Stats: vignettes/players.md
+  - API Reference: api.md
+  - Changelog: changelog.md
+  - Contributing: contributing.md
 
 markdown_extensions:
   - attr_list
+  - md_in_html
   - pymdownx.emoji:
       emoji_index: !!python/name:material.extensions.emoji.twemoji
       emoji_generator: !!python/name:material.extensions.emoji.to_svg
@@ -47,6 +71,7 @@ markdown_extensions:
       alternate_style: true
   - admonition
   - pymdownx.details
+  - tables
 
 plugins:
   - search
@@ -58,12 +83,17 @@ plugins:
           paths: [src]
           options:
             show_source: false
+            show_root_heading: true
+            show_symbol_type_heading: true
+            show_symbol_type_toc: true
 
 extra:
   social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/byuirpytooling/slapyshot
     - icon: fontawesome/brands/youtube
       link: https://www.youtube.com/@byuidss
     - icon: fontawesome/brands/linkedin
       link: https://www.linkedin.com/school/byu-idaho
 
-copyright: Copyright &copy; 2026 J. Hathaway
+copyright: Copyright &copy; 2026 Caleb Peterson
