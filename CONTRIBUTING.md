@@ -1,81 +1,68 @@
 # Contributing
 
-Contributions are welcome, and they are greatly appreciated! Every little bit
-helps, and credit will always be given.
+Contributions are welcome and appreciated! Here's how to get involved.
 
-## Types of Contributions
+---
 
-### Report Bugs
+## Reporting Bugs
 
-If you are reporting a bug, please include:
+When reporting a bug, please include:
 
-* Your operating system name and version.
-* Any details about your local setup that might be helpful in troubleshooting.
-* Detailed steps to reproduce the bug.
+- Your OS name and version
+- Your Python version (`python --version`)
+- Steps to reproduce the issue
+- The full error traceback
 
-### Fix Bugs
+---
 
-Look through the GitHub issues for bugs. Anything tagged with "bug" and "help
-wanted" is open to whoever wants to implement it.
+## Setting Up for Development
 
-### Implement Features
+1. Clone the repo:
 
-Look through the GitHub issues for features. Anything tagged with "enhancement"
-and "help wanted" is open to whoever wants to implement it.
-
-### Write Documentation
-
-You can never have enough documentation! Please feel free to contribute to any
-part of the documentation, such as the official docs, docstrings, or even
-on the web in blog posts, articles, and such.
-
-### Submit Feedback
-
-If you are proposing a feature:
-
-* Explain in detail how it would work.
-* Keep the scope as narrow as possible, to make it easier to implement.
-* Remember that this is a volunteer-driven project, and that contributions
-  are welcome :)
-
-## Get Started!
-
-Ready to contribute? Here's how to set up `template_package` for local development.
-
-1. Download a copy of `template_package` locally.
-
-2. Create and activate a conda environment for `template_package`:
-
-    ```console
-    $ conda create -n template_package python=3.12
-    $ conda activate template_package
+    ```bash
+    git clone https://github.com/byuirpytooling/slapyshot.git
+    cd slapyshot
     ```
 
-3. Install `template_package` using `poetry`:
+2. Install dependencies with `uv`:
 
-    ```console
-    $ poetry install
+    ```bash
+    uv sync
     ```
 
-4. Use `git` (or similar) to create a branch for local development and make your changes:
+3. Create a `.env` file with your API key:
 
-    ```console
-    $ git checkout -b name-of-your-bugfix-or-feature
+    ```bash
+    SPORTRADAR_API_KEY=your_key_here
     ```
 
-5. When you're done making changes, check that your changes conform to any code formatting requirements and pass any tests.
+4. Run the tests:
 
-6. Commit your changes and open a pull request.
+    ```bash
+    uv run pytest tests/ -v
+    ```
 
-## Pull Request Guidelines
+---
 
-Before you submit a pull request, check that it meets these guidelines:
+## Making Changes
 
-1. The pull request should include additional tests if appropriate.
-2. If the pull request adds functionality, the docs should be updated.
-3. The pull request should work for all currently supported operating systems and versions of Python.
+1. Create a branch:
+
+    ```bash
+    git checkout -b my-feature-or-fix
+    ```
+
+2. Make your changes and add tests where appropriate
+3. Run the full test suite before opening a PR:
+
+    ```bash
+    uv run pytest tests/ -v
+    ```
+
+4. Open a pull request against `main`
+
+---
 
 ## Code of Conduct
 
-Please note that the `template_package` project is released with a
-Code of Conduct. By contributing to this project you agree to abide by its terms.
+Please note that this project is released with a [Code of Conduct](https://github.com/byuirpytooling/slapyshot/blob/main/CONDUCT.md). By contributing you agree to abide by its terms.
