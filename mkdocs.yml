@@ -3,8 +3,8 @@ site_url: https://calebpeterson22.github.io/SlaPyShot
 site_description: A clean Python wrapper for the SportRadar NHL API — get teams, schedules, game data, and player stats as Polars DataFrames in seconds.
 site_author: Caleb Peterson
 
-repo_name: byuirpytooling/slapyshot
-repo_url: https://github.com/byuirpytooling/slapyshot
+repo_name: Calebpeterson22/SlaPyShot
+repo_url: https://github.com/Calebpeterson22/SlaPyShot
 
 theme:
   name: material
