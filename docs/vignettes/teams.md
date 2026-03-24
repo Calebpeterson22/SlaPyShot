@@ -13,7 +13,7 @@ from slapyshot import NHLClient
 
 client = NHLClient()
 teams = client.teams.get_all_teams()
-print(teams)
+display(teams)
 ```
 
 **Columns returned:** `id`, `name`, `market`, `alias`, `founded`, `conference_id`, `conference_name`, `division_id`, `division_name`
@@ -21,22 +21,22 @@ print(teams)
 ### Filter by conference
 
 ```python
-western = teams.filter(pl.col("conference_name") == "Western")
-print(western.select(["name", "market", "division_name"]))
+western = teams.filter(pl.col("conference_name") == "WESTERN CONFERENCE")
+display(western.select(["name", "market", "division_name"]))
 ```
 
 ### Filter by division
 
 ```python
 atlantic = teams.filter(pl.col("division_name") == "Atlantic")
-print(atlantic.select(["name", "market", "alias"]))
+display(atlantic.select(["name", "market", "alias"]))
 ```
 
 ### Sort by founding year
 
 ```python
 oldest = teams.sort("founded").select(["name", "market", "founded"])
-print(oldest)
+display(oldest)
 ```
 
 ---
@@ -50,11 +50,11 @@ import polars as pl
 
 # Get the team ID for the team you want
 teams = client.teams.get_all_teams()
-team_id = teams.filter(pl.col("name") == "Avalanche")["id"][0]
+team_id = teams.filter(pl.col("name") == "Lighting")["id"][0]
 
 # Pull the roster
 roster = client.teams.get_team_roster(team_id)
-print(roster)
+display(roster)
 ```
 
 **Columns returned:** `id`, `full_name`, `first_name`, `last_name`, `jersey_number`, `primary_position`, `birth_date`, `birth_city`, `birth_country`, `height`, `weight`, `shoots_catches`, `team_id`, `team_name`
@@ -64,11 +64,11 @@ print(roster)
 ```python
 # All goaltenders
 goalies = roster.filter(pl.col("primary_position") == "G")
-print(goalies.select(["full_name", "jersey_number", "shoots_catches"]))
+display(goalies.select(["full_name", "jersey_number", "shoots_catches"]))
 
 # All forwards (C, LW, RW)
 forwards = roster.filter(pl.col("primary_position").is_in(["C", "LW", "RW"]))
-print(forwards.select(["full_name", "primary_position", "jersey_number"]))
+display(forwards.select(["full_name", "primary_position", "jersey_number"]))
 ```
 
 ### Find a player ID
@@ -77,11 +77,11 @@ Player IDs are stable and can be stored for reuse. Here's how to look one up:
 
 ```python
 player_id = roster.filter(
-    pl.col("full_name").str.contains("MacKinnon")
+    pl.col("full_name").str.contains("Kucherov")
 )["id"][0]
 
-print(player_id)
-# "4397f4a9-0f24-11e2-8525-18a905767e44"
+display(player_id)
+# "92bee224-bf40-4b76-b8c2-1f690bbc1f22"
 ```
 
 ---

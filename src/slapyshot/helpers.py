@@ -34,22 +34,11 @@ def flatten_teams(data: dict) -> pl.DataFrame:
 
 
 def flatten_roster(data: dict) -> pl.DataFrame:
-    """Flatten the team profile response into a roster DataFrame.
-
-    Args:
-        data: Raw JSON from /teams/{team_id}/profile.json
-
-    Returns:
-        pl.DataFrame: One row per player with columns:
-            id, full_name, first_name, last_name, jersey_number,
-            primary_position, birth_date, birth_city, birth_country,
-            height, weight, shoots_catches, team_id, team_name
-    """
-    team = data.get("team", {})
-    team_id = team.get("id")
-    team_name = team.get("name")
+    # No "team" wrapper — data IS the team
+    team_id = data.get("id")
+    team_name = data.get("name")
     rows = []
-    for player in team.get("players", []):
+    for player in data.get("players", []):
         rows.append({
             "id": player.get("id"),
             "full_name": player.get("full_name"),
@@ -57,12 +46,10 @@ def flatten_roster(data: dict) -> pl.DataFrame:
             "last_name": player.get("last_name"),
             "jersey_number": player.get("jersey_number"),
             "primary_position": player.get("primary_position"),
-            "birth_date": player.get("birth_date"),
-            "birth_city": player.get("birth_city"),
-            "birth_country": player.get("birth_country"),
+            "birth_date": player.get("birthdate"),
             "height": player.get("height"),
             "weight": player.get("weight"),
-            "shoots_catches": player.get("shoots_catches"),
+            "handedness": player.get("handedness"),
             "team_id": team_id,
             "team_name": team_name,
         })
@@ -119,58 +106,38 @@ def flatten_season_schedule(data: dict) -> pl.DataFrame:
 
 
 def flatten_boxscore(data: dict) -> pl.DataFrame:
-    """Flatten the game boxscore response into a periods DataFrame.
-
-    Args:
-        data: Raw JSON from /games/{game_id}/boxscore.json
-
-    Returns:
-        pl.DataFrame: One row per period with columns:
-            game_id, period_number, period_type,
-            home_team_id, home_team_name, home_points,
-            away_team_id, away_team_name, away_points
-    """
-    game = data.get("game", {})
-    game_id = game.get("id")
-    home = game.get("home", {})
-    away = game.get("away", {})
+    game_id = data.get("id")
+    home = data.get("home", {})
+    away = data.get("away", {})
+    away_scoring = {p.get("number"): p for p in away.get("scoring", [])}
     rows = []
-    for period in game.get("scoring", []):
+    for period in home.get("scoring", []):
+        period_num = period.get("number")
+        away_period = away_scoring.get(period_num, {})
         rows.append({
             "game_id": game_id,
-            "period_number": period.get("number"),
+            "period_number": period_num,
             "period_type": period.get("type"),
             "home_team_id": home.get("id"),
             "home_team_name": home.get("name"),
-            "home_points": period.get("home_scoring", {}).get("points"),
+            "home_points": period.get("points"),
             "away_team_id": away.get("id"),
             "away_team_name": away.get("name"),
-            "away_points": period.get("away_scoring", {}).get("points"),
+            "away_points": away_period.get("points"),
         })
     return pl.DataFrame(rows)
 
 
+
 def flatten_game_summary(data: dict) -> pl.DataFrame:
-    """Flatten the game summary response into a player stats DataFrame.
-
-    Args:
-        data: Raw JSON from /games/{game_id}/summary.json
-
-    Returns:
-        pl.DataFrame: One row per player with columns:
-            game_id, team_id, team_name, player_id, full_name,
-            position, goals, assists, points, plus_minus,
-            shots, penalty_minutes, time_on_ice
-    """
-    game = data.get("game", {})
-    game_id = game.get("id")
+    game_id = data.get("id")
     rows = []
     for team_key in ("home", "away"):
-        team = game.get(team_key, {})
+        team = data.get(team_key, {})
         team_id = team.get("id")
         team_name = team.get("name")
         for player in team.get("players", []):
-            stats = player.get("statistics", {})
+            stats = player.get("statistics", {}).get("total", {})  # <-- fix here too
             rows.append({
                 "game_id": game_id,
                 "team_id": team_id,
@@ -190,23 +157,17 @@ def flatten_game_summary(data: dict) -> pl.DataFrame:
 
 
 def flatten_play_by_play(data: dict) -> pl.DataFrame:
-    """Flatten the play-by-play response into an events DataFrame.
-
-    Args:
-        data: Raw JSON from /games/{game_id}/pbp.json
-
-    Returns:
-        pl.DataFrame: One row per event with columns:
-            game_id, period_number, event_id, event_type,
-            clock, description, player_id, player_name, team_id
-    """
-    game = data.get("game", {})
-    game_id = game.get("id")
+    game_id = data.get("id")
     rows = []
-    for period in game.get("periods", []):
+    for period in data.get("periods", []):
         period_number = period.get("number")
         for event in period.get("events", []):
-            player = event.get("attribution", {})
+            attribution = event.get("attribution", {})
+            # player is in taken_by (goals) or first statistics entry
+            taken_by = event.get("taken_by", {})
+            stats = event.get("statistics", [{}])
+            first_stat_player = stats[0].get("player", {}) if stats else {}
+            player = taken_by if taken_by else first_stat_player
             rows.append({
                 "game_id": game_id,
                 "period_number": period_number,
@@ -214,9 +175,10 @@ def flatten_play_by_play(data: dict) -> pl.DataFrame:
                 "event_type": event.get("event_type"),
                 "clock": event.get("clock"),
                 "description": event.get("description"),
+                "team_id": attribution.get("id"),
+                "team_name": attribution.get("name"),
                 "player_id": player.get("id"),
                 "player_name": player.get("full_name"),
-                "team_id": player.get("team_id"),
             })
     return pl.DataFrame(rows)
 

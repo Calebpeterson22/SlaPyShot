@@ -12,8 +12,8 @@ This vignette covers fetching game schedules — both for a single day and for a
 from slapyshot import NHLClient
 
 client = NHLClient()
-schedule = client.schedule.get_daily_schedule(2026, 3, 23)
-print(schedule)
+schedule = client.schedule.get_daily_schedule(2026, 3, 22)
+display(schedule)
 ```
 
 **Columns returned:** `id`, `status`, `scheduled`, `home_team_id`, `home_team_name`, `home_team_alias`, `away_team_id`, `away_team_name`, `away_team_alias`, `venue_id`, `venue_name`
@@ -24,7 +24,7 @@ The `status` column tells you whether a game is upcoming, live, or final:
 
 ```python
 # Common status values: "scheduled", "inprogress", "closed"
-print(schedule.select(["home_team_name", "away_team_name", "status"]))
+display(schedule.select(["home_team_name", "away_team_name", "status"]))
 ```
 
 ### Get a game ID
@@ -37,7 +37,7 @@ game_id = schedule["id"][0]
 
 # Or find a specific matchup
 game_id = schedule.filter(
-    pl.col("home_team_name") == "Avalanche"
+    pl.col("home_team_name") == "Utah Mammoth"
 )["id"][0]
 ```
 
@@ -46,12 +46,12 @@ game_id = schedule.filter(
 ```python
 import polars as pl
 
-# All games involving the Bruins (home or away)
+# All games involving the Mammoth (home or away)
 bruins_games = schedule.filter(
-    (pl.col("home_team_name") == "Bruins") |
-    (pl.col("away_team_name") == "Bruins")
+    (pl.col("home_team_name") == "Utah Mammoth") |
+    (pl.col("away_team_name") == "Utah Mammoth")
 )
-print(bruins_games)
+display(bruins_games)
 ```
 
 ---
@@ -63,7 +63,7 @@ print(bruins_games)
 ```python
 # 2025-26 regular season
 season = client.schedule.get_season_schedule(2025, "REG")
-print(f"Total regular season games: {len(season)}")
+display(f"Total regular season games: {len(season)}")
 ```
 
 **Valid season types:**
@@ -86,17 +86,17 @@ home_counts = (
     .agg(pl.len().alias("home_games"))
     .sort("home_games", descending=True)
 )
-print(home_counts)
+display(home_counts)
 ```
 
 ### Find all games for one team
 
 ```python
-avs_games = season.filter(
-    (pl.col("home_team_name") == "Avalanche") |
-    (pl.col("away_team_name") == "Avalanche")
+tbl_games = season.filter(
+    (pl.col("home_team_name") == "Tampa Bay Lightning") |
+    (pl.col("away_team_name") == "Tampa Bay Lightning")
 )
-print(f"Avalanche games this season: {len(avs_games)}")
+display(f"Lightning games this season: {len(tbl_games)}")
 ```
 
 ### Pull all game IDs for a team
@@ -104,11 +104,11 @@ print(f"Avalanche games this season: {len(avs_games)}")
 Useful if you want to loop over games and fetch boxscores or summaries:
 
 ```python
-avs_game_ids = avs_games["id"].to_list()
+tbl_game_ids = tbl_games["id"].to_list()
 
-for game_id in avs_game_ids[:5]:  # first 5 games
+for game_id in tbl_game_ids[:5]:  # first 5 games
     boxscore = client.games.get_game_boxscore(game_id)
-    print(boxscore)
+    display(boxscore)
 ```
 
 !!! warning "Mind your rate limit"
