@@ -25,18 +25,18 @@ theme:
     text: Merriweather Sans
     code: Red Hat Mono
   palette:
-    - scheme: slate
-      toggle:
-        icon: material/weather-sunny
-        name: Switch to light mode
-      primary: blue
-      accent: cyan
-    - scheme: default
-      toggle:
-        icon: material/weather-night
-        name: Switch to dark mode
-      primary: blue
-      accent: cyan
+  - scheme: slate
+    toggle:
+      icon: material/weather-sunny
+      name: Switch to light mode
+    primary: deep orange
+    accent: orange
+  - scheme: default
+    toggle:
+      icon: material/weather-night
+      name: Switch to dark mode
+    primary: deep orange
+    accent: orange
 
 nav:
   - Home: index.md
