@@ -40,13 +40,13 @@ theme:
 
 nav:
   - Home: index.md
-  - Getting Started: getting-started.md
+  - Getting Started: getting_started.md  
+  - API Reference: API.md                
   - Vignettes:
     - Teams & Rosters: vignettes/teams.md
     - Schedules: vignettes/schedules.md
     - Game Data: vignettes/games.md
     - Player Stats: vignettes/players.md
-  - API Reference: api.md
   - Changelog: changelog.md
   - Contributing: contributing.md
 
