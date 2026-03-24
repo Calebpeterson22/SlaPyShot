@@ -50,7 +50,7 @@ import polars as pl
 
 # Get the team ID for the team you want
 teams = client.teams.get_all_teams()
-team_id = teams.filter(pl.col("name") == "Lighting")["id"][0]
+team_id = teams.filter(pl.col("name") == "Lightning")["id"][0]
 
 # Pull the roster
 roster = client.teams.get_team_roster(team_id)
