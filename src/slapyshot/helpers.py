@@ -16,7 +16,7 @@ def flatten_teams(data: dict) -> pl.DataFrame:
             conference_name, division_id, division_name
     """
     rows = []
-    for conference in data.get("league", {}).get("conferences", []):
+    for conference in data.get("conferences", []):
         for division in conference.get("divisions", []):
             for team in division.get("teams", []):
                 rows.append({
