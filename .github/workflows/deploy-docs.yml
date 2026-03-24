@@ -1,4 +1,4 @@
-name: Deploy MkDocs to GitHub Pages
+name: Deploy Docs
 
 on:
   push:
@@ -13,21 +13,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
-
-      - name: Install uv
-        uses: astral-sh/setup-uv@v3
-
-      - name: Install MkDocs dependencies
-        run: |
-          uv pip install --system \
-            mkdocs-material \
-            mkdocstrings[python] \
-            mkdocs-autorefs
-
-      - name: Deploy to GitHub Pages
-        run: mkdocs gh-deploy --force
+          python-version: '3.12'
+      - run: pip install mkdocs-material mkdocstrings[python]
+      - run: mkdocs gh-deploy --force
