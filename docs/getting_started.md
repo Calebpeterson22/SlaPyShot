@@ -9,13 +9,13 @@ This page walks you through installing SlaPyShot, setting up your API key, and m
 === "pip"
 
     ```bash
-    pip install slapyshot
+    pip install git+https://github.com/Calebpeterson22/SlaPyShot.git@main
     ```
 
 === "uv"
 
     ```bash
-    uv pip install slapyshot
+    uv pip install git+https://github.com/Calebpeterson22/SlaPyShot.git@main
     ```
 
 === "uv (dev/editable)"

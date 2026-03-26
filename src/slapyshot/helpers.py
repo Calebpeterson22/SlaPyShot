@@ -16,7 +16,10 @@ def flatten_teams(data: dict) -> pl.DataFrame:
             conference_name, division_id, division_name
     """
     rows = []
-    for conference in data.get("conferences", []):
+
+    league = data.get("league", {})
+
+    for conference in league.get("conferences", []):
         for division in conference.get("divisions", []):
             for team in division.get("teams", []):
                 rows.append({
@@ -35,10 +38,14 @@ def flatten_teams(data: dict) -> pl.DataFrame:
 
 def flatten_roster(data: dict) -> pl.DataFrame:
     # No "team" wrapper — data IS the team
-    team_id = data.get("id")
-    team_name = data.get("name")
+    team = data.get("team", {})
+
+    team_id = team.get("id")
+    team_name = team.get("name")
+
     rows = []
-    for player in data.get("players", []):
+
+    for player in team.get("players", []):
         rows.append({
             "id": player.get("id"),
             "full_name": player.get("full_name"),
@@ -46,13 +53,16 @@ def flatten_roster(data: dict) -> pl.DataFrame:
             "last_name": player.get("last_name"),
             "jersey_number": player.get("jersey_number"),
             "primary_position": player.get("primary_position"),
-            "birth_date": player.get("birthdate"),
+            "birth_date": player.get("birth_date"),
+            "birth_city": player.get("birth_city"),
+            "birth_country": player.get("birth_country"),
             "height": player.get("height"),
             "weight": player.get("weight"),
-            "handedness": player.get("handedness"),
+            "shoots_catches": player.get("shoots_catches"),
             "team_id": team_id,
             "team_name": team_name,
         })
+        
     return pl.DataFrame(rows)
 
 
@@ -106,38 +116,47 @@ def flatten_season_schedule(data: dict) -> pl.DataFrame:
 
 
 def flatten_boxscore(data: dict) -> pl.DataFrame:
-    game_id = data.get("id")
-    home = data.get("home", {})
-    away = data.get("away", {})
-    away_scoring = {p.get("number"): p for p in away.get("scoring", [])}
+    game = data.get("game", {})
+
+    game_id = game.get("id")
+
+    home = game.get("home", {})
+    away = game.get("away", {})
+
     rows = []
-    for period in home.get("scoring", []):
-        period_num = period.get("number")
-        away_period = away_scoring.get(period_num, {})
+
+    for period in game.get("scoring", []):
         rows.append({
             "game_id": game_id,
-            "period_number": period_num,
+            "period_number": period.get("number"),
             "period_type": period.get("type"),
             "home_team_id": home.get("id"),
             "home_team_name": home.get("name"),
-            "home_points": period.get("points"),
+            "home_points": period.get("home_scoring", {}).get("points"),
             "away_team_id": away.get("id"),
             "away_team_name": away.get("name"),
-            "away_points": away_period.get("points"),
+            "away_points": period.get("away_scoring", {}).get("points"),
         })
     return pl.DataFrame(rows)
 
 
 
 def flatten_game_summary(data: dict) -> pl.DataFrame:
-    game_id = data.get("id")
+    game = data.get("game", {})
+
+    game_id = game.get("id")
+
     rows = []
+
     for team_key in ("home", "away"):
-        team = data.get(team_key, {})
+        team = game.get(team_key, {})
+
         team_id = team.get("id")
         team_name = team.get("name")
+
         for player in team.get("players", []):
-            stats = player.get("statistics", {}).get("total", {})  # <-- fix here too
+            stats = player.get("statistics", {})
+
             rows.append({
                 "game_id": game_id,
                 "team_id": team_id,
@@ -157,17 +176,19 @@ def flatten_game_summary(data: dict) -> pl.DataFrame:
 
 
 def flatten_play_by_play(data: dict) -> pl.DataFrame:
-    game_id = data.get("id")
+    game = data.get("game", {})
+
+    game_id = game.get("id")
+
     rows = []
-    for period in data.get("periods", []):
+
+    for period in game.get("periods", []):
         period_number = period.get("number")
+
         for event in period.get("events", []):
+
             attribution = event.get("attribution", {})
-            # player is in taken_by (goals) or first statistics entry
-            taken_by = event.get("taken_by", {})
-            stats = event.get("statistics", [{}])
-            first_stat_player = stats[0].get("player", {}) if stats else {}
-            player = taken_by if taken_by else first_stat_player
+
             rows.append({
                 "game_id": game_id,
                 "period_number": period_number,
@@ -175,10 +196,9 @@ def flatten_play_by_play(data: dict) -> pl.DataFrame:
                 "event_type": event.get("event_type"),
                 "clock": event.get("clock"),
                 "description": event.get("description"),
-                "team_id": attribution.get("id"),
-                "team_name": attribution.get("name"),
-                "player_id": player.get("id"),
-                "player_name": player.get("full_name"),
+                "player_id": attribution.get("id"),
+                "player_name": attribution.get("full_name"),
+                "team_id": attribution.get("team_id"),
             })
     return pl.DataFrame(rows)
 
