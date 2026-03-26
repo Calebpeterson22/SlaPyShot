@@ -35,17 +35,25 @@ profile = client.players.get_player_profile(player_id)
 
 ---
 
-## Installation
+## 1. Install SlaPyShot
 
-```bash
-pip install slapyshot
-```
+=== "pip"
 
-Or with `uv`:
+    ```bash
+    pip install git+https://github.com/Calebpeterson22/SlaPyShot.git@main
+    ```
 
-```bash
-uv pip install slapyshot
-```
+=== "uv"
+
+    ```bash
+    uv pip install git+https://github.com/Calebpeterson22/SlaPyShot.git@main
+    ```
+
+=== "uv (dev/editable)"
+
+    ```bash
+    uv sync
+    ```
 
 ---
 
