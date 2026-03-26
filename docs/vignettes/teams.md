@@ -53,11 +53,13 @@ teams = client.teams.get_all_teams()
 team_id = teams.filter(pl.col("name") == "Lightning")["id"][0]
 
 # Pull the roster
+
 roster = client.teams.get_team_roster(team_id)
+
 display(roster)
 ```
 
-**Columns returned:** `id`, `full_name`, `first_name`, `last_name`, `jersey_number`, `primary_position`, `birth_date`, `birth_city`, `birth_country`, `height`, `weight`, `shoots_catches`, `team_id`, `team_name`
+**Columns returned:** `id`, `full_name`, `first_name`, `last_name`, `jersey_number`, `primary_position`, `birth_date`, `birth_city`, `birth_country`, `height`, `weight`, `handedness`, `team_id`, `team_name`
 
 ### Filter by position
 

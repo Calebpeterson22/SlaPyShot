@@ -13,7 +13,7 @@ client = NHLClient()
 teams = client.teams.get_all_teams()
 
 # Today's schedule
-schedule = client.schedule.get_daily_schedule(2026, 3, 23)
+schedule = client.schedule.get_daily_schedule(2026, 3, 22)
 
 # Live boxscore
 boxscore = client.games.get_game_boxscore(game_id)

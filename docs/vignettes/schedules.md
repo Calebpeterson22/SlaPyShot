@@ -47,11 +47,11 @@ game_id = schedule.filter(
 import polars as pl
 
 # All games involving the Mammoth (home or away)
-bruins_games = schedule.filter(
+mammoth_games = schedule.filter(
     (pl.col("home_team_name") == "Utah Mammoth") |
     (pl.col("away_team_name") == "Utah Mammoth")
 )
-display(bruins_games)
+display(mammoth_games)
 ```
 
 ---

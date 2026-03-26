@@ -5,23 +5,30 @@ import polars as pl
 
 
 def flatten_teams(data: dict) -> pl.DataFrame:
-    """Flatten the league hierarchy response into a teams DataFrame.
-
-    Args:
-        data: Raw JSON from /league/hierarchy.json
-
-    Returns:
-        pl.DataFrame: One row per team with columns:
-            id, name, market, alias, founded, conference_id,
-            conference_name, division_id, division_name
-    """
+    """Flatten the league hierarchy response into a teams DataFrame."""
     rows = []
 
-    league = data.get("league", {})
-
-    for conference in league.get("conferences", []):
-        for division in conference.get("divisions", []):
-            for team in division.get("teams", []):
+    # Conferences are at the top level
+    for conference in data.get("conferences", []):
+        # Some conferences may have divisions
+        divisions = conference.get("divisions", [])
+        if divisions:
+            for division in divisions:
+                for team in division.get("teams", []):
+                    rows.append({
+                        "id": team.get("id"),
+                        "name": team.get("name"),
+                        "market": team.get("market"),
+                        "alias": team.get("alias"),
+                        "founded": team.get("founded"),
+                        "conference_id": conference.get("id"),
+                        "conference_name": conference.get("name"),
+                        "division_id": division.get("id"),
+                        "division_name": division.get("name"),
+                    })
+        else:
+            # No divisions, teams directly under conference
+            for team in conference.get("teams", []):
                 rows.append({
                     "id": team.get("id"),
                     "name": team.get("name"),
@@ -30,15 +37,17 @@ def flatten_teams(data: dict) -> pl.DataFrame:
                     "founded": team.get("founded"),
                     "conference_id": conference.get("id"),
                     "conference_name": conference.get("name"),
-                    "division_id": division.get("id"),
-                    "division_name": division.get("name"),
+                    "division_id": None,
+                    "division_name": None,
                 })
+
     return pl.DataFrame(rows)
 
 
 def flatten_roster(data: dict) -> pl.DataFrame:
-    # No "team" wrapper — data IS the team
-    team = data.get("team", {})
+    """Flatten team roster / profile response into a DataFrame."""
+    # Some responses wrap under "team", some are top-level
+    team = data.get("team", data)  
 
     team_id = team.get("id")
     team_name = team.get("name")
@@ -58,11 +67,11 @@ def flatten_roster(data: dict) -> pl.DataFrame:
             "birth_country": player.get("birth_country"),
             "height": player.get("height"),
             "weight": player.get("weight"),
-            "shoots_catches": player.get("shoots_catches"),
+            "handedness": player.get("handedness"),
             "team_id": team_id,
             "team_name": team_name,
         })
-        
+
     return pl.DataFrame(rows)
 
 
@@ -115,48 +124,73 @@ def flatten_season_schedule(data: dict) -> pl.DataFrame:
     return flatten_daily_schedule(data)
 
 
+import polars as pl
+
+import polars as pl
+
 def flatten_boxscore(data: dict) -> pl.DataFrame:
+    """
+    Flatten a SportRadar boxscore JSON into one row per period with home and away scores.
+    """
     game = data.get("game", {})
-
     game_id = game.get("id")
+    start_time = game.get("start_time")
+    end_time = game.get("end_time")
+    total_game_duration = game.get("total_game_duration")
 
-    home = game.get("home", {})
-    away = game.get("away", {})
+    home_team = game.get("home_team", {})
+    away_team = game.get("away_team", {})
 
     rows = []
 
-    for period in game.get("scoring", []):
+    # Collect periods info
+    # Assuming each team has the same periods list
+    periods = home_team.get("periods", [])
+
+    for period in periods:
+        period_number = period.get("number")
+        period_type = period.get("type")
+        sequence = period.get("sequence")
+
+        # Home points
+        home_period_data = next(
+            (p for p in home_team.get("periods", []) if p.get("number") == period_number),
+            {}
+        )
+        away_period_data = next(
+            (p for p in away_team.get("periods", []) if p.get("number") == period_number),
+            {}
+        )
+
         rows.append({
             "game_id": game_id,
-            "period_number": period.get("number"),
-            "period_type": period.get("type"),
-            "home_team_id": home.get("id"),
-            "home_team_name": home.get("name"),
-            "home_points": period.get("home_scoring", {}).get("points"),
-            "away_team_id": away.get("id"),
-            "away_team_name": away.get("name"),
-            "away_points": period.get("away_scoring", {}).get("points"),
+            "start_time": start_time,
+            "end_time": end_time,
+            "total_game_duration": total_game_duration,
+            "period_number": period_number,
+            "period_type": period_type,
+            "sequence": sequence,
+            "home_team_id": home_team.get("id"),
+            "home_team_name": home_team.get("name"),
+            "home_points": home_period_data.get("points"),
+            "away_team_id": away_team.get("id"),
+            "away_team_name": away_team.get("name"),
+            "away_points": away_period_data.get("points"),
         })
-    return pl.DataFrame(rows)
 
+    return pl.DataFrame(rows)
 
 
 def flatten_game_summary(data: dict) -> pl.DataFrame:
     game = data.get("game", {})
-
     game_id = game.get("id")
-
     rows = []
 
-    for team_key in ("home", "away"):
-        team = game.get(team_key, {})
-
+    for team in game.get("teams", []):
         team_id = team.get("id")
         team_name = team.get("name")
-
         for player in team.get("players", []):
-            stats = player.get("statistics", {})
-
+            stats = player.get("statistics") or {}
             rows.append({
                 "game_id": game_id,
                 "team_id": team_id,
@@ -164,6 +198,7 @@ def flatten_game_summary(data: dict) -> pl.DataFrame:
                 "player_id": player.get("id"),
                 "full_name": player.get("full_name"),
                 "position": player.get("primary_position"),
+                "games_played": stats.get("games_played"),
                 "goals": stats.get("goals"),
                 "assists": stats.get("assists"),
                 "points": stats.get("points"),
@@ -172,23 +207,19 @@ def flatten_game_summary(data: dict) -> pl.DataFrame:
                 "penalty_minutes": stats.get("penalty_minutes"),
                 "time_on_ice": stats.get("time_on_ice"),
             })
+
     return pl.DataFrame(rows)
 
 
 def flatten_play_by_play(data: dict) -> pl.DataFrame:
     game = data.get("game", {})
-
     game_id = game.get("id")
-
     rows = []
 
     for period in game.get("periods", []):
-        period_number = period.get("number")
-
+        period_number = period.get("sequence") or period.get("number")
         for event in period.get("events", []):
-
-            attribution = event.get("attribution", {})
-
+            attribution = event.get("attribution") or {}
             rows.append({
                 "game_id": game_id,
                 "period_number": period_number,
@@ -200,30 +231,28 @@ def flatten_play_by_play(data: dict) -> pl.DataFrame:
                 "player_name": attribution.get("full_name"),
                 "team_id": attribution.get("team_id"),
             })
+
     return pl.DataFrame(rows)
 
+import polars as pl
 
 def flatten_player_profile(data: dict) -> pl.DataFrame:
-    """Flatten the player profile response into a career stats DataFrame.
-
-    Args:
-        data: Raw JSON from /players/{player_id}/profile.json
-
-    Returns:
-        pl.DataFrame: One row per season with columns:
-            player_id, full_name, primary_position, season_year,
-            season_type, team_id, team_name, games_played,
-            goals, assists, points, plus_minus, shots, penalty_minutes
-    """
+    """Flatten a player profile into a career stats DataFrame."""
     player_id = data.get("id")
     full_name = data.get("full_name")
     position = data.get("primary_position")
     rows = []
+
     for season in data.get("seasons", []):
         season_year = season.get("year")
         season_type = season.get("type")
         for team in season.get("teams", []):
-            totals = team.get("totals", {}).get("statistics", {})
+            # The stats we want are under statistics -> total
+            stats = team.get("statistics", {}).get("total", {})
+
+            if not stats:
+                print(f"⚠️ No stats for {full_name} {season_year} {season_type} {team.get('name')}")
+
             rows.append({
                 "player_id": player_id,
                 "full_name": full_name,
@@ -232,35 +261,29 @@ def flatten_player_profile(data: dict) -> pl.DataFrame:
                 "season_type": season_type,
                 "team_id": team.get("id"),
                 "team_name": team.get("name"),
-                "games_played": totals.get("games_played"),
-                "goals": totals.get("goals"),
-                "assists": totals.get("assists"),
-                "points": totals.get("points"),
-                "plus_minus": totals.get("plus_minus"),
-                "shots": totals.get("shots"),
-                "penalty_minutes": totals.get("penalty_minutes"),
+                "games_played": stats.get("games_played"),
+                "goals": stats.get("goals"),
+                "assists": stats.get("assists"),
+                "points": stats.get("points"),
+                "plus_minus": stats.get("plus_minus"),
+                "shots": stats.get("shots"),
+                "penalty_minutes": stats.get("penalty_minutes"),
             })
+
     return pl.DataFrame(rows)
 
 
 def flatten_player_season_stats(data: dict) -> pl.DataFrame:
-    """Flatten the team season stats response into a player stats DataFrame.
-
-    Args:
-        data: Raw JSON from /seasons/{year}/{type}/teams/{team_id}/statistics.json
-
-    Returns:
-        pl.DataFrame: One row per player with columns:
-            team_id, team_name, player_id, full_name, primary_position,
-            games_played, goals, assists, points, plus_minus,
-            shots, penalty_minutes
-    """
+    """Flatten team season stats into a player stats DataFrame."""
     team = data.get("team", {})
     team_id = team.get("id")
     team_name = team.get("name")
     rows = []
+
     for player in team.get("players", []):
-        stats = player.get("statistics", {})
+        # stats are usually under statistics -> total
+        stats = player.get("statistics", {}).get("total", {})
+
         rows.append({
             "team_id": team_id,
             "team_name": team_name,
@@ -275,4 +298,5 @@ def flatten_player_season_stats(data: dict) -> pl.DataFrame:
             "shots": stats.get("shots"),
             "penalty_minutes": stats.get("penalty_minutes"),
         })
+
     return pl.DataFrame(rows)
